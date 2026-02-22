@@ -10,6 +10,7 @@ A simple and intuitive math note taking app
 - Delete
 - Clean rendering
 - Export AST to json
+- New Rows
 
 ## Planned features
 - Mouse selection

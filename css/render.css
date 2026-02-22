@@ -1,0 +1,56 @@
+.fraction {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.row {
+    display: inline-flex;
+    align-items: center;
+}
+
+.fraction > span {
+    display: block;
+}
+
+.superscript > .row > .fraction {
+    font-size: 0.8em;
+    translate: 0 -1em;
+}
+
+.bar {
+    width: 100%;
+    border-top: 0.1em solid black;
+    background-color: black;
+}
+
+.num, .denom {
+    display: flex;
+    justify-content: center;
+}
+
+.symbol {
+    margin: 0 0.2em;
+}
+
+.caret {
+    display: inline-block;
+    background-color: black;
+    width: 1.5px;
+    height: 1em;
+    margin: 0 0em;
+    animation: blank 1s step-end infinite;
+}
+
+@keyframes blank {50% {opacity: 0%;}}
+
+.selected {
+    background-color: rgb(188, 212, 233);
+}
+
+.placeholder {
+    display: inline-block;
+    width: 0.5em;
+    height: 0.5em;
+    border: 1px solid black;
+}
