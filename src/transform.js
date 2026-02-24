@@ -20,13 +20,32 @@ function insertSymbolAt(d, p, value) {
 
 function insertBlockAt(d, p) {
     //add new block below cursor row block
-    let currBlock = slot.getOwner(point.getRow(p));
+    let currRow = point.getRow(p);
+    //keep getting parent row until in block row
+    while (slot.getName(currRow) != "row") currRow = slot.getParent(currRow);
+    let currBlock = slot.getOwner(currRow);
 
     //get cursor block as index in d.blocks
     let rowIndex = 0;
     while (currBlock != d.blocks[rowIndex]) rowIndex++;
 
-    d.blocks.splice(rowIndex + 1, 0, model.mathLine(model.row()));
+    //split current Row into 2 parts based on point idex
+    //if was not in a block struct, then don't split row
+    let splitIndex = currRow === point.getRow(p) ?
+        point.getIndex(p):
+        currRow.items.length;
+
+    let secondHalfOfRow = model.row(
+        point.getRow(p).items.slice(splitIndex)
+    );
+
+    //have to change all inner rows slot parents to new row
+    secondHalfOfRow = model.attachAllChildToRow(secondHalfOfRow);
+
+    //remove from first half
+    point.getRow(p).items.splice(splitIndex);
+
+    d.blocks.splice(rowIndex + 1, 0, model.mathLine(secondHalfOfRow));
 
     let newBlock = d.blocks[rowIndex + 1];
     let newRow = newBlock.row;
@@ -69,6 +88,18 @@ function wrapFraction(d, p) {
 
         return newP;
     }
+}
+
+function insertGroupAt(d, p, type) {
+    let currRow = point.getRow(p);
+    let currIndex = point.getIndex(p);
+
+    let groupNode = model.group(model.row(), type, currRow);
+
+    let newP = insertNodeAt(d, p, groupNode);
+    newP = enterGroup(d, newP, "left");
+
+    return newP;
 }
 
 //deletion
@@ -129,8 +160,23 @@ function enterFraction(d, p, dir) {
     console.error("No fraction direction specified");
 }
 
+function enterGroup(d, p, dir) {
+    let currRow = point.getRow(p);
+    let currIndex = point.getIndex(p);
+    let i = dir === "left" ? currIndex - 1 : currIndex;
+
+    let groupNode = currRow.items[i];
+    let newIndex = dir === "left" ?
+        groupNode.body.items.length :
+        0;
+    return point.create(groupNode.body, newIndex);
+}
+
 function exitStructure(d, p, dir) {
     let currRow = point.getRow(p);
+    //if structure has no parent return null (e.g. blocks - mathLine)
+    if (!slot.getParent(currRow)) return null;
+
     let i = dir == "left" ? 0 : 1;
 
     let newIndex = slot.indexInParentRow(currRow) + i;
@@ -180,6 +226,7 @@ function nearestEditableSlot(d, p, dir) {
                     case "power": return enterPower(d, p, "left");
                     case "fraction": return enterFraction(d, p, "left");
                     case "symbol": return point.create(currRow, currIndex - 1);
+                    case "group": return enterGroup(d, p, "left");
                 }
             } else {
                 switch (slot.getName(currRow)) {
@@ -201,6 +248,10 @@ function nearestEditableSlot(d, p, dir) {
 
                         return point.create(frac.num, frac.num.items.length);
                     }
+
+                    case "body": {
+                        return exitStructure(d, p, "left");
+                    }
                 }
             }
         }
@@ -212,6 +263,7 @@ function nearestEditableSlot(d, p, dir) {
                     case "power": return enterPower(d, p, "right");
                     case "fraction": return enterFraction(d, p, "right");
                     case "symbol": return point.create(currRow, currIndex + 1); 
+                    case "group": return enterGroup(d, p, "right");
                 }
             } else {
                 switch (slot.getName(currRow)) {
@@ -223,6 +275,7 @@ function nearestEditableSlot(d, p, dir) {
                         return point.create(frac.den, 0);
                     }
                     case "den": return exitStructure(d, p, "right");
+                    case "body": return exitStructure(d, p, "right");
                 }
             }
         }
@@ -245,6 +298,7 @@ export const transform = {
     insertBlockAt,
     wrapPower,
     wrapFraction,
+    insertGroupAt,
     exitStructure,
     nearestEditableSlot,
     nearestEditablePosition,

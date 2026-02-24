@@ -36,6 +36,22 @@ function handle(event, st) {
 
         case "Enter": {
             st = commands.insertBlock(st);
+            break;
+        }
+
+        case "(": {
+            st = commands.insertParentheses(st);
+            break;
+        }
+
+        case "Tab": {
+            st = commands.exitStructureRight(st);
+            break;
+        }
+
+        case ")": {
+            st = commands.exitStructureRight(st);
+            break;
         }
 
         default: {

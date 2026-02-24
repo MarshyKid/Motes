@@ -49,6 +49,19 @@ function mathLine(r) {
     return mathLineNode;
 }
 
+function group(r, s, parentRow) {
+    let groupNode = {
+        type: "group",
+        body: r,
+        style: s
+    };
+
+    slot.attach(groupNode.body, groupNode, "body", parentRow);
+
+    return groupNode;
+}
+
+//transformations
 function toPower(sym, parentRow) {
     let pow = power(sym, row(), parentRow)
 
@@ -65,12 +78,41 @@ function toFraction(sym, parentRow) {
     return frac
 }
 
+function attachAllChildToRow(r) {
+    for (let node of r.items) {
+        switch (node.type) {
+            case "symbol": break;
+            case "power": {
+                let exp = node.exp;
+                slot.attach(exp, slot.getOwner(exp), slot.getName(exp), r);
+                break;
+            }
+            case "fraction": {
+                let num = node.num;
+                let den = node.den;
+                slot.attach(num, slot.getOwner(num), slot.getName(num), r);
+                slot.attach(den, slot.getOwner(den), slot.getName(den), r);
+                break;
+            }
+            case "group": {
+                let body = node.body;
+                slot.attach(body, slot.getOwner(body), slot.getName(body), r);
+                break;
+            }
+        }
+    }
+
+    return r;
+}
+
 export const model = {
     symbol,
     row,
     power,
     fraction,
     mathLine,
+    group,
     toPower,
-    toFraction
+    toFraction,
+    attachAllChildToRow,
 }

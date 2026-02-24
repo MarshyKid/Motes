@@ -70,6 +70,22 @@ function insertBlock(st) {
     return st;
 }
 
+function insertGroup(st, type) {
+    let d = state.getDoc(st);
+    let cursor = state.getCursor(st);
+
+    let newCursor = transform.insertGroupAt(d, cursor, type);
+
+    st = state.setCursor(st, newCursor);
+    st = state.collapse(st);
+
+    return st;
+}
+
+function insertParentheses(st) {
+    return insertGroup(st, "parentheses");
+}
+
 //deletion
 function deleteBackward(st) {
     let d = state.getDoc(st);
@@ -87,6 +103,20 @@ function deleteBackward(st) {
     return st;
 }
 
+//structural nav - for shortcuts (tab, ctrl-, ), etc.)
+function exitStructureRight(st) {
+    let d = state.getDoc(st);
+    let cursor = state.getCursor(st);
+
+    let newCursor = transform.exitStructure(d, cursor, "right");
+    if (!newCursor) newCursor = cursor;
+    
+    st = state.setCursor(st, newCursor);
+    st = state.collapse(st);
+
+    return st;
+}
+
 export const commands = {
     moveCursorLeft,
     moveCursorRight,
@@ -94,5 +124,7 @@ export const commands = {
     insertPower,
     insertFraction,
     insertBlock,
+    insertParentheses,
     deleteBackward,
+    exitStructureRight
 }

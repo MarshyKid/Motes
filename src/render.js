@@ -10,6 +10,13 @@ function elem(tag, name) {
     return el
 }
 
+function elemWithText(str) {
+    let el = elem("span", "parentheses");
+    el.innerText = str;
+    
+    return el;
+}
+
 function caret() {
     return elem("span", "caret")
 }
@@ -94,6 +101,19 @@ function renderMathLine(node, sel) {
     return output;
 }
 
+function renderGroup(node, sel) {
+    let output = elem("div", "group");
+
+    switch (node.style) {
+        case "parentheses": {
+            output.appendChild(elemWithText("("));
+            output.appendChild(render(node.body, sel));
+            output.appendChild(elemWithText(")"));
+            return output;
+        }
+    }
+}
+
 function render(node, selection) {
     switch (node.type) {
         case "symbol": return renderSymbol(node)
@@ -101,6 +121,7 @@ function render(node, selection) {
         case "power": return renderPower(node, selection)
         case "fraction": return renderFraction(node, selection)
         case "mathLine": return renderMathLine(node, selection)
+        case "group": return renderGroup(node, selection);
     }
 }
 

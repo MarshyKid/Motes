@@ -42,6 +42,10 @@
     animation: blank 1s step-end infinite;
 }
 
+.group {
+    display: inline-flex;
+}
+
 @keyframes blank {50% {opacity: 0%;}}
 
 .selected {
