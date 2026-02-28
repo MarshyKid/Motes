@@ -78,6 +78,10 @@ function toFraction(sym, parentRow) {
     return frac
 }
 
+function getRowItems(r) {
+    return r.items;
+}
+
 function attachAllChildToRow(r) {
     for (let node of r.items) {
         switch (node.type) {
@@ -114,5 +118,6 @@ export const model = {
     group,
     toPower,
     toFraction,
+    getRowItems,
     attachAllChildToRow,
 }

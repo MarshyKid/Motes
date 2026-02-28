@@ -106,7 +106,38 @@ function insertGroupAt(d, p, type) {
 function deleteBackwardAt(d, p) {
     let currRow = point.getRow(p);
     let i = point.getIndex(p);
-    if (i === 0) return p;
+    if (i === 0) {
+        //check if start of block, if so then join prev block
+        switch (slot.getName(currRow)) {
+            case "row": {
+                let currBlock = slot.getOwner(currRow);
+                //get cursor block as index in d.blocks
+                let rowIndex = 0;
+                while (currBlock != d.blocks[rowIndex]) rowIndex++;
+
+                if (rowIndex === 0) return p;
+
+                //add currRow contents to previous row 
+                let items = model.getRowItems(currRow);
+                let prevRow = d.blocks[rowIndex - 1].row;
+                let newIndex = model.getRowItems(prevRow).length;
+                let newP = point.create(prevRow, newIndex);
+                let tmp = 0;
+                for (let node of items) {
+                    newP = insertNodeAt(d, newP, node);
+                }
+
+                model.attachAllChildToRow(prevRow);
+
+                //remove currRow
+                d.blocks.splice(rowIndex, 1);
+
+                return point.create(prevRow, newIndex);
+            }
+
+            default: return p;
+        }
+    }
 
     let newItems = currRow.items.slice(0, i - 1);
     newItems = newItems.concat(currRow.items.slice(i));
