@@ -3,7 +3,7 @@ A simple and intuitive math note taking app
 
 ## Features
 - Keyboard-only input
-- Symbols, Powers, Fractions
+- Symbols, Powers, Fractions, Parentheses, Sin
 - Nesting
 - Caret Navigation
 - Selection (clamped to current row/slot)
