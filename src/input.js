@@ -1,12 +1,22 @@
 import { commands } from "./commands.js";
 import { renderState } from "./render.js";
 import { state } from "./state.js";
+import { serialize } from "./serialize.js";
 //keyboard input
 
 //map key -> commands
 function handle(event, st) {
     let keypress = event.key
     let shift = event.shiftKey
+
+    if (event.ctrlKey || event.metaKey) {
+        switch (keypress) {
+            case "s": {
+                serialize.save(st);
+                return st;
+            }
+        }
+    }
 
     switch (keypress) {
         case "ArrowRight": {
@@ -45,7 +55,8 @@ function handle(event, st) {
         }
 
         case "Tab": {
-            st = commands.exitStructureRight(st);
+            event.preventDefault();
+            st = commands.moveToSlot(st, shift);
             break;
         }
 
@@ -69,6 +80,30 @@ function view(st) {
 }
 
 let st = state.init();
+
+function loadJson(event) {
+    const file = event.target.files[0];
+    if (!file) {
+        return null;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+        const fileContent = e.target.result;
+        st = serialize.load(fileContent);
+        console.log(st);
+        view(st);
+    }
+
+    reader.readAsText(file);
+}
+
+const fileInput = document.getElementById("json-upload");
+fileInput.addEventListener("change", (event) => {
+    loadJson(event);
+});
+
 
 view(st)
 

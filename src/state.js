@@ -2,14 +2,15 @@ import { point } from './point.js';
 import { model } from './model.js';
 import { selection } from './selection.js';
 
-function init() {
+function init(d = null) {
     let firstLine = model.mathLine(model.row());
+    if (!d) {
+        d = { blocks: [firstLine] };
+    }
     return {
-        doc: {
-            blocks: [firstLine],
-        },
+        doc: d,
         view: {
-            selection: selection.init(point.create(firstLine.row, 0), point.create(firstLine.row, 0))
+            selection: selection.init(point.create(d.blocks[0].row, 0), point.create(d.blocks[0].row, 0))
         }
     };
 }

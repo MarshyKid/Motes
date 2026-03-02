@@ -1,6 +1,7 @@
 import { transform } from './transform.js';
 import { state } from './state.js';
 import { point } from './point.js';
+import { slot } from './slot.js';
 
 //movement
 function moveCursorLeft(st, shift) {
@@ -104,6 +105,89 @@ function deleteBackward(st) {
 }
 
 //structural nav - for shortcuts (tab, ctrl-, ), etc.)
+function moveToSlot(st, shift) {
+    if (shift) {
+        return prevSlot(st);
+    } else {
+        return nextSlot(st);
+    }
+}
+
+function prevSlot(st) {
+    let d = state.getDoc(st);
+    let cursor = state.getCursor(st);
+
+    let newCursor = transform.prevSlot(d, cursor);
+    //let newCursor = transform.nearestStructureLeft(d, cursor);
+    if (!newCursor) {
+        //either in a block, or start of a structure
+        if (!slot.getParent(point.getRow(cursor))) {
+            //no parent - nav to previous structure
+            newCursor = transform.nearestStructureLeft(d, cursor);
+            if (!newCursor) return st;
+            else {
+                st = state.setCursor(st, newCursor);
+                st = state.collapse(st);
+                return st;
+            }
+        }
+        return exitStructureLeft(st);
+    } else {
+        st = state.setCursor(st, newCursor);
+        st = state.collapse(st);
+
+        return st;
+    }
+}
+
+function nextSlot(st) {
+    let d = state.getDoc(st);
+    let cursor = state.getCursor(st);
+
+    let newCursor = transform.nextSlot(d, cursor);
+    //let newCursor = transform.nearestStructureRight(d, cursor);
+    if (!newCursor) {
+        //either in a block, or end of a structure
+        if (!slot.getParent(point.getRow(cursor))) {
+            //no parent - find next structure instead
+            newCursor = transform.nearestStructureRight(d, cursor);
+            if (!newCursor) return st;
+            else {
+                st = state.setCursor(st, newCursor);
+                st = state.collapse(st);
+                return st;
+            }
+        }
+        //there is parent, meaning currently in a structure
+        return exitStructureRight(st);
+    } else {
+        st = state.setCursor(st, newCursor);
+        st = state.collapse(st);
+        return st;
+    }
+}
+
+function exitStructure(st, shift) {
+    if (shift) {
+        return exitStructureLeft(st);
+    } else {
+        return exitStructureRight(st);
+    }
+}
+
+function exitStructureLeft(st) {
+    let d = state.getDoc(st);
+    let cursor = state.getCursor(st);
+
+    let newCursor = transform.exitStructure(d, cursor, "left");
+    if (!newCursor) newCursor = cursor;
+    
+    st = state.setCursor(st, newCursor);
+    st = state.collapse(st);
+
+    return st;
+}
+
 function exitStructureRight(st) {
     let d = state.getDoc(st);
     let cursor = state.getCursor(st);
@@ -126,5 +210,7 @@ export const commands = {
     insertBlock,
     insertParentheses,
     deleteBackward,
-    exitStructureRight
+    exitStructure,
+    exitStructureRight,
+    moveToSlot,
 }

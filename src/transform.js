@@ -324,6 +324,95 @@ function nearestEditablePosition(d, p, dir) {
     } else return newP;
 }
 
+function nextSlot(d, p) {
+    const currRow = point.getRow(p);
+    const currIndex = point.getIndex(p);
+    const ownerNode = slot.getOwner(currRow);
+
+    if (ownerNode.type === "mathLine") return null;
+    
+    const slots = model.getSlots(ownerNode);
+    let i = 0;
+    while (i < slots.length && slots[i].row != currRow) i++;
+    if (i === slots.length - 1) return null; //no more slots after current slot
+
+    return point.create(slots[i+1].row, 0);
+}
+
+function prevSlot(d, p) {
+    const currRow = point.getRow(p);
+    const currIndex = point.getIndex(p);
+    const ownerNode = slot.getOwner(currRow);
+
+    if (ownerNode.type === "mathLine") return null;
+
+    const slots = model.getSlots(ownerNode);
+    let i = 0;
+    while (i < slots.length && slots[i].row != currRow) i++;
+    if (i === 0) return null; //already at first slot
+    
+    return point.create(slots[i-1].row, model.getRowItems(slots[i-1].row).length);
+}
+
+function nearestStructureRight(d, p) {
+    const currRow = point.getRow(p);
+    const currIndex = point.getIndex(p);
+
+    const rowItems = model.getRowItems(currRow);
+    let i = currIndex;
+    while (i < rowItems.length && model.getSlots(rowItems[i]).length === 0) i++; 
+
+    if (i < rowItems.length) {
+        //there is a structure to the right
+        let newNode = rowItems[i];
+        let newNameRow = model.getSlots(newNode)[0];
+        return point.create(newNameRow.row, 0);
+    } else {
+        //no structure, dont do anything
+        return p;
+    }
+}
+
+function nearestStructureLeft(d, p) {
+    const currRow = point.getRow(p);
+    const currIndex = point.getIndex(p);
+
+    const rowItems = model.getRowItems(currRow);
+    let i = currIndex - 1;
+    while (i >= 0 && model.getSlots(rowItems[i]).length === 0) i--; 
+
+    if (i >= 0) {
+        //there is structure to the left
+        let newNode = rowItems[i];
+        let slots = model.getSlots(newNode);
+        let newNameRow = slots[slots.length - 1];
+        return point.create(newNameRow.row, model.getRowItems(newNameRow.row).length - 1);
+    } else {
+        //no structure, dont do anything
+        return p;
+    }
+}
+
+function removeAllCtx(d) {
+    const blocks = d.blocks;
+    let newD = {blocks: []};
+    for (let b of blocks) {
+        newD.blocks.push(model.removeCtx(b));
+    }
+
+    return newD;
+}
+
+function addAllCtx(d) {
+    const blocks = d.blocks;
+    let newD = {blocks: []};
+    for (let b of blocks) {
+        newD.blocks.push(model.addCtx(b));
+    }
+
+    return newD;
+}
+
 export const transform = {
     insertSymbolAt,
     insertBlockAt,
@@ -334,5 +423,11 @@ export const transform = {
     nearestEditableSlot,
     nearestEditablePosition,
     deleteBackwardAt,
-    deleteRange
+    deleteRange,
+    nextSlot,
+    prevSlot,
+    nearestStructureRight,
+    nearestStructureLeft,
+    removeAllCtx,
+    addAllCtx
 }
