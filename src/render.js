@@ -114,6 +114,16 @@ function renderGroup(node, sel) {
     }
 }
 
+function renderSin(node, sel) {
+    let output = elem("div", "sin");
+
+    output.appendChild(elemWithText("sin("));
+    output.appendChild(render(node.body, sel));
+    output.appendChild(elemWithText(")"));
+
+    return output;
+}
+
 function render(node, selection) {
     switch (node.type) {
         case "symbol": return renderSymbol(node)
@@ -122,6 +132,7 @@ function render(node, selection) {
         case "fraction": return renderFraction(node, selection)
         case "mathLine": return renderMathLine(node, selection)
         case "group": return renderGroup(node, selection);
+        case "sin": return renderSin(node, selection);
     }
 }
 

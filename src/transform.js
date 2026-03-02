@@ -102,6 +102,18 @@ function insertGroupAt(d, p, type) {
     return newP;
 }
 
+function insertSinAt(d, p) {
+    let currRow = point.getRow(p);
+    let currIndex = point.getIndex(p);
+
+    let sinNode = model.sin(model.row(), currRow);
+
+    let newP = insertNodeAt(d, p, sinNode);
+    newP = enterStructure(d, newP, "left");
+
+    return newP;
+}
+
 //deletion
 function deleteBackwardAt(d, p) {
     let currRow = point.getRow(p);
@@ -203,6 +215,19 @@ function enterGroup(d, p, dir) {
     return point.create(groupNode.body, newIndex);
 }
 
+function enterStructure(d, p, dir) {
+    let currRow = point.getRow(p);
+    let currIndex = point.getIndex(p);
+    let i = dir === "left" ? currIndex - 1 : currIndex;
+
+    let structNode = currRow.items[i];
+    let slots = model.getSlots(structNode);
+    let nameRow = dir === "left" ? slots[slots.length - 1] : slots[0];
+    let newIndex = dir === "left" ? nameRow.row.items.length : 0;
+
+    return point.create(nameRow.row, newIndex);
+}
+
 function exitStructure(d, p, dir) {
     let currRow = point.getRow(p);
     //if structure has no parent return null (e.g. blocks - mathLine)
@@ -252,62 +277,42 @@ function nearestEditableSlot(d, p, dir) {
         case "left": {
             if (currIndex > 0) {
                 let leftSym = currRow.items[currIndex - 1];
-
-                switch (leftSym.type) {
-                    case "power": return enterPower(d, p, "left");
-                    case "fraction": return enterFraction(d, p, "left");
-                    case "symbol": return point.create(currRow, currIndex - 1);
-                    case "group": return enterGroup(d, p, "left");
+                if (model.getSlots(leftSym).length > 0) {
+                    //predicate checks if node is structure with slots
+                    return enterStructure(d, p, "left");
                 }
+
+                //no slots, just move cursor back 1
+                return point.create(currRow, currIndex - 1);
             } else {
-                switch (slot.getName(currRow)) {
-                    case "row": {
-                        return null;
-                    }
-
-                    case "exp": {
-                        return exitStructure(d, p, "left");
-                    }
-
-                    case "num": {
-                        return exitStructure(d, p, "left");
-                    }
-
-                    case "den": {
-                        //enter numerator
-                        let frac = slot.getOwner(currRow);
-
-                        return point.create(frac.num, frac.num.items.length);
-                    }
-
-                    case "body": {
-                        return exitStructure(d, p, "left");
-                    }
+                let newP = prevSlot(d, p);
+                if (!newP) {
+                    newP = exitStructure(d, p, "left"); //null if at start of mathLine
                 }
+
+                return newP;
             }
         }
 
         case "right": {
             if (currIndex < currRow.items.length) {
                 let rightSym = currRow.items[currIndex];
-                switch (rightSym.type) {
-                    case "power": return enterPower(d, p, "right");
-                    case "fraction": return enterFraction(d, p, "right");
-                    case "symbol": return point.create(currRow, currIndex + 1); 
-                    case "group": return enterGroup(d, p, "right");
+
+                if (model.getSlots(rightSym).length > 0) {
+                    //rightSym is a structure with slots
+                    return enterStructure(d, p, "right");
                 }
+
+                //node with no slots, just increment cursor by 1
+                return point.create(currRow, currIndex + 1);
             } else {
-                switch (slot.getName(currRow)) {
-                    case "row": return null;
-                    case "exp": return exitStructure(d, p, "right");
-                    case "num": {
-                        //enter denom
-                        let frac = slot.getOwner(currRow);
-                        return point.create(frac.den, 0);
-                    }
-                    case "den": return exitStructure(d, p, "right");
-                    case "body": return exitStructure(d, p, "right");
+                let newP = nextSlot(d, p);
+
+                if (!newP) {
+                    //no slot to enter - leave structure
+                    newP = exitStructure(d, p, "right"); //exitStructure returns null if in MathLine
                 }
+                return newP;
             }
         }
     }
@@ -419,6 +424,7 @@ export const transform = {
     wrapPower,
     wrapFraction,
     insertGroupAt,
+    insertSinAt,
     exitStructure,
     nearestEditableSlot,
     nearestEditablePosition,

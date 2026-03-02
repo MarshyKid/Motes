@@ -87,6 +87,18 @@ function insertParentheses(st) {
     return insertGroup(st, "parentheses");
 }
 
+function insertSin(st) {
+    let d = state.getDoc(st);
+    let cursor = state.getCursor(st);
+
+    let newCursor = transform.insertSinAt(d, cursor);
+
+    st = state.setCursor(st, newCursor);
+    st = state.collapse(st);
+
+    return st;
+}
+
 //deletion
 function deleteBackward(st) {
     let d = state.getDoc(st);
@@ -209,6 +221,7 @@ export const commands = {
     insertFraction,
     insertBlock,
     insertParentheses,
+    insertSin,
     deleteBackward,
     exitStructure,
     exitStructureRight,

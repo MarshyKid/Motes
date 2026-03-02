@@ -61,6 +61,17 @@ function group(r, s, parentRow = null) {
     return groupNode;
 }
 
+function sin(r, parentRow = null) {
+    let sinNode = {
+        type: "sin",
+        body: r
+    };
+
+    if (parentRow != null) slot.attach(sinNode.body, sinNode, "body", parentRow);
+
+    return sinNode;
+}
+
 //transformations
 function toPower(sym, parentRow) {
     let pow = power(sym, row(), parentRow)
@@ -84,25 +95,11 @@ function getRowItems(r) {
 
 function attachAllChildToRow(r) {
     for (let node of r.items) {
-        switch (node.type) {
-            case "symbol": break;
-            case "power": {
-                let exp = node.exp;
-                slot.attach(exp, slot.getOwner(exp), slot.getName(exp), r);
-                break;
-            }
-            case "fraction": {
-                let num = node.num;
-                let den = node.den;
-                slot.attach(num, slot.getOwner(num), slot.getName(num), r);
-                slot.attach(den, slot.getOwner(den), slot.getName(den), r);
-                break;
-            }
-            case "group": {
-                let body = node.body;
-                slot.attach(body, slot.getOwner(body), slot.getName(body), r);
-                break;
-            }
+        let nameRows = getSlots(node);
+        for (let nameRow of nameRows) {
+            let name = nameRow.name;
+            let slotRow = nameRow.row;
+            slot.attach(slotRow, node, name, r);
         }
     }
 
@@ -138,6 +135,12 @@ function getSlots(node) {
         case "mathLine": {
             let res = [
                 {name: "row", row: node.row}
+            ];
+            return res;
+        }
+        case "sin": {
+            let res = [
+                {name: "body", row: node.body}
             ];
             return res;
         }
@@ -232,6 +235,7 @@ export const model = {
     fraction,
     mathLine,
     group,
+    sin,
     toPower,
     toFraction,
     getRowItems,

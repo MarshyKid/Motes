@@ -65,6 +65,11 @@ function handle(event, st) {
             break;
         }
 
+        case "S": {
+            st = commands.insertSin(st);
+            break;
+        }
+
         default: {
             if (keypress.length == 1) commands.insertSymbol(st, keypress) //only add keys with length 1
             break
